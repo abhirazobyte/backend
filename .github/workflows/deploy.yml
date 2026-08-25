@@ -1,4 +1,4 @@
-name: Deploy Laravel Backend
+name: Deploy to cPanel
 
 on:
   push:
@@ -11,39 +11,17 @@ jobs:
 
     steps:
       - name: Deploy to cPanel
-        uses: appleboy/ssh-action@v1.2.5
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          port: ${{ secrets.SERVER_PORT }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USERNAME }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_PORT }}
           script: |
-            set -e
+            cd ${{ secrets.CPANEL_PATH }}
 
-            echo "Starting deployment..."
-
-            cd ${{ secrets.DEPLOY_PATH }}
-
-            echo "Current directory:"
-            pwd
-
-            echo "Pulling latest code..."
             git pull origin main
 
-            echo "Installing Composer dependencies..."
             composer install --no-dev --optimize-autoloader
 
-            echo "Clearing Laravel cache..."
             php artisan optimize:clear
-
-            echo "Caching configuration..."
-            php artisan config:cache
-
-            echo "Caching routes..."
-            php artisan route:cache
-
-            echo "Caching views..."
-            php artisan view:cache
-
-            echo "Deployment completed successfully!"
