@@ -68,26 +68,47 @@ jobs:
           mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
           chmod -R ug+rwx storage bootstrap/cache || true
 
-          if [ ! -f composer.phar ] && ! command -v composer >/dev/null 2>&1 && [ ! -x "$HOME/bin/composer" ]; then
-            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-            php composer-setup.php --install-dir=. --filename=composer.phar
+          PHP_BIN=""
+          for candidate in \
+            /opt/cpanel/ea-php82/root/usr/bin/php \
+            /opt/cpanel/ea-php81/root/usr/bin/php \
+            /opt/cpanel/ea-php80/root/usr/bin/php \
+            /usr/local/bin/ea-php82 \
+            /usr/local/bin/ea-php81 \
+            /usr/local/bin/ea-php80 \
+            "$(command -v ea-php82 2>/dev/null || true)" \
+            "$(command -v ea-php81 2>/dev/null || true)" \
+            "$(command -v ea-php80 2>/dev/null || true)"
+          do
+            if [ -n "$candidate" ] && [ -x "$candidate" ] && "$candidate" -r 'exit(PHP_VERSION_ID >= 80000 ? 0 : 1);'; then
+              PHP_BIN="$candidate"
+              break
+            fi
+          done
+
+          if [ -z "$PHP_BIN" ]; then
+            echo "ERROR: Default php is $(php -v 2>/dev/null | head -1)"
+            echo "Laravel 8 vendor needs PHP 8.0+. Enable PHP 8.1 or 8.2 in cPanel MultiPHP Manager, then re-run deploy."
+            ls -d /opt/cpanel/ea-php* 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "Using PHP: $PHP_BIN ($($PHP_BIN -r 'echo PHP_VERSION;'))"
+
+          if [ ! -f composer.phar ]; then
+            $PHP_BIN -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+            $PHP_BIN composer-setup.php --install-dir=. --filename=composer.phar
             rm -f composer-setup.php
           fi
 
-          if command -v composer >/dev/null 2>&1; then
-            COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader --no-interaction
-          elif [ -x "$HOME/bin/composer" ]; then
-            COMPOSER_MEMORY_LIMIT=-1 "$HOME/bin/composer" install --no-dev --optimize-autoloader --no-interaction
-          else
-            COMPOSER_MEMORY_LIMIT=-1 php composer.phar install --no-dev --optimize-autoloader --no-interaction
-          fi
+          COMPOSER_MEMORY_LIMIT=-1 $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction
 
           if [ ! -f vendor/autoload.php ]; then
             echo "ERROR: vendor/autoload.php is missing after composer install"
             exit 1
           fi
 
-          php artisan optimize:clear
+          $PHP_BIN artisan optimize:clear
 
           echo "Deploy finished"
           ENDSSH
