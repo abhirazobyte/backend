@@ -52,11 +52,13 @@ jobs:
 
           git remote rm origin >/dev/null 2>&1 || true
           git remote add origin "https://github.com/${REPO}.git"
+          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 
-          git -c http.extraheader="$AUTH" fetch origin "$BRANCH"
+          git -c http.extraheader="$AUTH" fetch origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}"
 
-          git checkout -B "$BRANCH" "origin/$BRANCH"
-          git reset --hard "origin/$BRANCH"
+          git update-ref "refs/heads/${BRANCH}" FETCH_HEAD
+          git symbolic-ref HEAD "refs/heads/${BRANCH}"
+          git reset --hard HEAD
 
           run_composer() {
             if command -v composer >/dev/null 2>&1; then
