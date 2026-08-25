@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - newmain
   workflow_dispatch:
 
 jobs:
@@ -22,7 +21,10 @@ jobs:
         env:
           SSH_HOST: ${{ secrets.CPANEL_HOST }}
           SSH_USER: ${{ secrets.CPANEL_USERNAME }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          DEPLOY_REPO: ${{ secrets.DEPLOY_REPO || github.repository }}
+          DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH || github.ref_name }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=accept-new \
@@ -31,30 +33,54 @@ jobs:
             -o PubkeyAcceptedAlgorithms=+ssh-rsa,rsa-sha2-256,rsa-sha2-512 \
             -p 22 \
             "$SSH_USER@$SSH_HOST" \
-            "export GH_TOKEN='$GH_TOKEN'; bash -s" << 'ENDSSH'
+            "export GH_TOKEN='$GH_TOKEN' DEPLOY_REPO='$DEPLOY_REPO' DEPLOY_BRANCH='$DEPLOY_BRANCH' DEPLOY_PATH='$DEPLOY_PATH'; bash -s" << 'ENDSSH'
           set -e
-          cd /home1/a1637tnt/crm.razobyte.com
+          SITE_DIR="${DEPLOY_PATH:-/home1/a1637tnt/crm.razobyte.com}"
+          BRANCH="${DEPLOY_BRANCH:-main}"
+          REPO="${DEPLOY_REPO}"
           AUTH="AUTHORIZATION: bearer ${GH_TOKEN}"
+
+          cd "$SITE_DIR"
+          echo "Deploying github.com/${REPO} branch ${BRANCH} into ${SITE_DIR}"
+
+          git config --global --add safe.directory "$SITE_DIR" || true
 
           if [ ! -d .git ]; then
             echo "No git repo here. Initializing..."
             git init
-            git remote add origin https://github.com/abhirazobyte/LangmaBackend.git
           fi
 
-          git remote set-url origin https://github.com/abhirazobyte/LangmaBackend.git
-          git -c http.extraheader="$AUTH" fetch origin
-
-          if git rev-parse --verify origin/newmain >/dev/null 2>&1; then
-            git checkout -B newmain origin/newmain
+          if git remote get-url origin >/dev/null 2>&1; then
+            git remote set-url origin "https://github.com/${REPO}.git"
           else
-            git checkout -B main origin/main
+            git remote add origin "https://github.com/${REPO}.git"
           fi
 
-          if command -v composer >/dev/null 2>&1; then
-            composer install --no-dev --optimize-autoloader --no-interaction
+          git -c http.extraheader="$AUTH" fetch origin "$BRANCH"
+
+          git checkout -B "$BRANCH" "origin/$BRANCH"
+          git reset --hard "origin/$BRANCH"
+
+          run_composer() {
+            if command -v composer >/dev/null 2>&1; then
+              composer "$@"
+            elif [ -x "$HOME/bin/composer" ]; then
+              "$HOME/bin/composer" "$@"
+            elif [ -f composer.phar ]; then
+              php composer.phar "$@"
+            else
+              echo "Composer not found; skipping composer install"
+              return 0
+            fi
+          }
+
+          run_composer install --no-dev --optimize-autoloader --no-interaction
+
+          if [ -f artisan ] && [ -f vendor/autoload.php ]; then
+            php artisan optimize:clear
+          else
+            echo "Skipping artisan (vendor or artisan missing)"
           fi
 
-          php artisan optimize:clear
           echo "Deploy finished"
           ENDSSH
