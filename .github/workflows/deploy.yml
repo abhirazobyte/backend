@@ -56,14 +56,25 @@ jobs:
 
           git -c http.extraheader="$AUTH" fetch origin "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}"
 
+          if [ -f .env ]; then
+            cp -f .env /tmp/crm.env.bak
+          fi
+
           git update-ref "refs/heads/${BRANCH}" FETCH_HEAD
           git symbolic-ref HEAD "refs/heads/${BRANCH}"
           git reset --hard HEAD
+
+          if [ -f /tmp/crm.env.bak ]; then
+            cp -f /tmp/crm.env.bak .env
+          fi
 
           if [ ! -f .env ]; then
             echo "ERROR: .env is missing on the server. Copy it in cPanel before Laravel can boot."
             exit 1
           fi
+
+          sed -i '/text\/x-generic/d' .env
+          sed -i 's/\r$//' .env
 
           mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
           chmod -R ug+rwx storage bootstrap/cache || true
@@ -101,7 +112,7 @@ jobs:
             rm -f composer-setup.php
           fi
 
-          COMPOSER_MEMORY_LIMIT=-1 $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=php
+          COMPOSER_MEMORY_LIMIT=-1 $PHP_BIN composer.phar install --no-dev --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=php
 
           if [ ! -f vendor/autoload.php ]; then
             echo "ERROR: vendor/autoload.php is missing after composer install"
