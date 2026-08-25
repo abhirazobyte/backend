@@ -1,4 +1,4 @@
-name: Deploy to cPanel
+name: Deploy Laravel Backend to cPanel
 
 on:
   push:
@@ -10,18 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to cPanel
+      - name: Deploy to cPanel via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.CPANEL_HOST }}
           username: ${{ secrets.CPANEL_USERNAME }}
           key: ${{ secrets.CPANEL_SSH_KEY }}
-          port: ${{ secrets.CPANEL_PORT }}
+          port: 22
           script: |
-            cd ${{ secrets.CPANEL_PATH }}
-
+            cd /home1/a1637tnt/crm.razobyte.com
             git pull origin main
-
             composer install --no-dev --optimize-autoloader
-
             php artisan optimize:clear
