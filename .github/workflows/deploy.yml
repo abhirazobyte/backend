@@ -4,21 +4,30 @@ on:
   push:
     branches:
       - main
+      - newmain
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to cPanel via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.CPANEL_HOST }}
-          username: ${{ secrets.CPANEL_USERNAME }}
-          key: ${{ secrets.CPANEL_SSH_KEY }}
-          port: 22
-          script: |
-            cd /home1/a1637tnt/crm.razobyte.com
-            git pull origin main
-            composer install --no-dev --optimize-autoloader
-            php artisan optimize:clear
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy over OpenSSH
+        env:
+          SSH_HOST: ${{ secrets.CPANEL_HOST }}
+          SSH_USER: ${{ secrets.CPANEL_USERNAME }}
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=accept-new \
+            -o KexAlgorithms=diffie-hellman-group-exchange-sha256 \
+            -o HostKeyAlgorithms=+ssh-rsa,rsa-sha2-256,rsa-sha2-512 \
+            -o PubkeyAcceptedAlgorithms=+ssh-rsa,rsa-sha2-256,rsa-sha2-512 \
+            -p 22 \
+            "$SSH_USER@$SSH_HOST" \
+            "cd /home1/a1637tnt/crm.razobyte.com && git fetch origin && (git pull origin main || git pull origin newmain) && composer install --no-dev --optimize-autoloader --no-interaction && php artisan optimize:clear && echo Deploy finished"
