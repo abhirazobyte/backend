@@ -1,0 +1,41 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+
+# Videos (too large for GitHub)
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mkv
+*.wmv
+*.flv
+*.m4v
+
+# Logs and local cache
+/storage/logs
+/storage/framework/sessions
+/storage/framework/views
+/storage/framework/cache
+
+# Old copies / leftover projects (not source)
+/public/langma-old
+/public/public_html
+/public/leads
+/public/assets/public_html
+/public/FlexStart
+/public/rankupfast
+/images
+/cgi-bin

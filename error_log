@@ -1,0 +1,36 @@
+[22-Jun-2026 07:39:29 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 07:42:23 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 07:42:24 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 07:51:14 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 07:59:42 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 08:03:31 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 08:04:50 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 08:04:51 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
+[22-Jun-2026 08:17:06 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method Illuminate\Foundation\Application::handleRequest() in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/bmfhe13si76e/public_html/api.langmainternational.com/index.php on line 12
