@@ -60,26 +60,34 @@ jobs:
           git symbolic-ref HEAD "refs/heads/${BRANCH}"
           git reset --hard HEAD
 
-          run_composer() {
-            if command -v composer >/dev/null 2>&1; then
-              composer "$@"
-            elif [ -x "$HOME/bin/composer" ]; then
-              "$HOME/bin/composer" "$@"
-            elif [ -f composer.phar ]; then
-              php composer.phar "$@"
-            else
-              echo "Composer not found; skipping composer install"
-              return 0
-            fi
-          }
-
-          run_composer install --no-dev --optimize-autoloader --no-interaction
-
-          if [ -f artisan ] && [ -f vendor/autoload.php ]; then
-            php artisan optimize:clear
-          else
-            echo "Skipping artisan (vendor or artisan missing)"
+          if [ ! -f .env ]; then
+            echo "ERROR: .env is missing on the server. Copy it in cPanel before Laravel can boot."
+            exit 1
           fi
+
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          chmod -R ug+rwx storage bootstrap/cache || true
+
+          if [ ! -f composer.phar ] && ! command -v composer >/dev/null 2>&1 && [ ! -x "$HOME/bin/composer" ]; then
+            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+            php composer-setup.php --install-dir=. --filename=composer.phar
+            rm -f composer-setup.php
+          fi
+
+          if command -v composer >/dev/null 2>&1; then
+            COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader --no-interaction
+          elif [ -x "$HOME/bin/composer" ]; then
+            COMPOSER_MEMORY_LIMIT=-1 "$HOME/bin/composer" install --no-dev --optimize-autoloader --no-interaction
+          else
+            COMPOSER_MEMORY_LIMIT=-1 php composer.phar install --no-dev --optimize-autoloader --no-interaction
+          fi
+
+          if [ ! -f vendor/autoload.php ]; then
+            echo "ERROR: vendor/autoload.php is missing after composer install"
+            exit 1
+          fi
+
+          php artisan optimize:clear
 
           echo "Deploy finished"
           ENDSSH
