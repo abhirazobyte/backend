@@ -50,11 +50,8 @@ jobs:
             git init
           fi
 
-          if git remote get-url origin >/dev/null 2>&1; then
-            git remote set-url origin "https://github.com/${REPO}.git"
-          else
-            git remote add origin "https://github.com/${REPO}.git"
-          fi
+          git remote rm origin >/dev/null 2>&1 || true
+          git remote add origin "https://github.com/${REPO}.git"
 
           git -c http.extraheader="$AUTH" fetch origin "$BRANCH"
 
