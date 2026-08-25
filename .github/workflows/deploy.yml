@@ -119,6 +119,7 @@ jobs:
             exit 1
           fi
 
+          $PHP_BIN scripts/patch-carbon-php82.php
           $PHP_BIN artisan optimize:clear
 
           echo "Deploy finished"
