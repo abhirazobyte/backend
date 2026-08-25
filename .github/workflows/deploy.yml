@@ -22,6 +22,7 @@ jobs:
         env:
           SSH_HOST: ${{ secrets.CPANEL_HOST }}
           SSH_USER: ${{ secrets.CPANEL_USERNAME }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=accept-new \
@@ -30,4 +31,30 @@ jobs:
             -o PubkeyAcceptedAlgorithms=+ssh-rsa,rsa-sha2-256,rsa-sha2-512 \
             -p 22 \
             "$SSH_USER@$SSH_HOST" \
-            "cd /home1/a1637tnt/crm.razobyte.com && git fetch origin && (git pull origin main || git pull origin newmain) && composer install --no-dev --optimize-autoloader --no-interaction && php artisan optimize:clear && echo Deploy finished"
+            "export GH_TOKEN='$GH_TOKEN'; bash -s" << 'ENDSSH'
+          set -e
+          cd /home1/a1637tnt/crm.razobyte.com
+          AUTH="AUTHORIZATION: bearer ${GH_TOKEN}"
+
+          if [ ! -d .git ]; then
+            echo "No git repo here. Initializing..."
+            git init
+            git remote add origin https://github.com/abhirazobyte/LangmaBackend.git
+          fi
+
+          git remote set-url origin https://github.com/abhirazobyte/LangmaBackend.git
+          git -c http.extraheader="$AUTH" fetch origin
+
+          if git rev-parse --verify origin/newmain >/dev/null 2>&1; then
+            git checkout -B newmain origin/newmain
+          else
+            git checkout -B main origin/main
+          fi
+
+          if command -v composer >/dev/null 2>&1; then
+            composer install --no-dev --optimize-autoloader --no-interaction
+          fi
+
+          php artisan optimize:clear
+          echo "Deploy finished"
+          ENDSSH
