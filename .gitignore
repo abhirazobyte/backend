@@ -16,7 +16,7 @@ yarn-error.log
 public/assets/images/*.mp4
 public/normal_images/*.mp4
 # Videos (too large for GitHub)
-*.mp4
+
 *.webm
 *.mov
 *.avi
